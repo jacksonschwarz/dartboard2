@@ -1,0 +1,106 @@
+<head>
+    <style>
+        /* #map{
+            height: 500px;
+            width: 500px;
+        } */
+        li{
+            list-style: none
+        }
+    </style>
+    <link rel="stylesheet" href="bootstrap.min.css"/>
+    <title>Where are we going for dinner?</title>
+</head>
+<body>
+
+    <h4>How Far from 610 Huntington Avenue?</h4>
+    <input onchange="showRange()" id="distanceSlider" type="range" min="500" max="2000" value="200"/>
+    <p id="range">500</p>
+    <h4>How Expensive?</h4>
+    <ul>    
+        <li>
+            <input type="radio" name="pricing" value=0/>$
+        </li>
+        <li>
+            <input type="radio" name="pricing" value=1/>$$
+        </li>
+        <li>
+            <input type="radio" name="pricing" value=2/>$$$
+        </li>
+        <li>
+            <input type="radio" name="pricing" value=3/>$$$$
+        </li>
+        <li>
+            <input type="radio" name="pricing" value=4/>$$$$$
+        </li>
+    </ul>
+    <button class="btn btn-primary" onclick="initMap()">Find a place</button>
+    <div id="map">
+    </div>
+    <h2>Where are we going to go to dinner?</h2>
+    <h4>Okay, I guess we'll go to:</h4>
+    <h4 id="name"></h4>
+    <h4>at</h4>
+    <h4 id="vicinity"></h4>
+    <button class="btn btn-primary" onclick="getDirections()">Directions</button>
+</body>
+<script>
+    let map;
+    let service;
+    let ln;
+    let scale;
+    let zoom=15;
+
+    let places=[];
+    let priceRange;
+    let radius;
+    function initMap() {
+        let dorm_location=new google.maps.LatLng(42.335975, -71.098310);
+        let radios=document.getElementsByName("pricing");
+        for(let button of radios){
+            if(button.checked){
+                priceRange=button.value;
+                break;
+            }
+        }
+        radius=document.getElementById("distanceSlider").value
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: dorm_location,
+        });
+        let request={
+            location:dorm_location,
+            radius:radius,
+            type:['restaurant'],
+            maxPriceLevel: priceRange,
+            openNow:true,
+
+        }
+        service=new google.maps.places.PlacesService(map)
+        service.nearbySearch(request, callback)
+    }
+    function callback(results, status) {
+        if (status == google.maps.places.PlacesServiceStatus.OK) {
+            for (var i = 0; i < results.length; i++) {
+                // console.log(results[i])
+                var place = results[i];
+                places.push({name:results[i].name, location:results[i].vicinity})
+            }
+            let randomPlace=places[Math.floor(Math.random()*places.length)];
+            document.getElementById("name").innerHTML=randomPlace.name;
+            document.getElementById("vicinity").innerHTML=randomPlace.location;
+        }
+
+        
+    }
+    function showRange(){
+        document.getElementById("range").innerHTML=document.getElementById("distanceSlider").value
+    }
+    function getDirections(){
+        let placeName=document.getElementById("vicinity").innerHTML
+        let parsedPlaceName=placeName.replace(" ", "+")
+        window.open(`https://www.google.com/maps/place/${parsedPlaceName}`)
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPgbJm7ZCsVI7SFJ-mAXNIpkIlGEEZCPY&libraries=places"
+async defer></script>
+<!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPgbJm7ZCsVI7SFJ-mAXNIpkIlGEEZCPY&libraries=places"></script> -->
